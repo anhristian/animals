@@ -1,5 +1,8 @@
 package edu.cnm.deepdive.animals.model;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 public class Animal {
 
   private String name;
@@ -13,8 +16,12 @@ public class Animal {
   private String diet;
 
   private String lifespan;
+  //allows gson to put a value in this. @Expose:Need to be set on a field.
+  @Expose
+  //Process where converting an object into a string. allow to change from one form to another.
+  @SerializedName("image")
 
-  private String image;
+  private String url;
 
   public String getName() {
     return name;
@@ -64,11 +71,11 @@ public class Animal {
     this.lifespan = lifespan;
   }
 
-  public String getImage() {
-    return image;
+  public String getUrl() {
+    return url;
   }
 
-  public void setImage(String image) {
-    this.image = image;
+  public void setUrl(String url) {
+    this.url = url;
   }
 }

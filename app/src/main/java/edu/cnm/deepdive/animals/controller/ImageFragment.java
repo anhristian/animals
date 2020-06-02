@@ -1,6 +1,7 @@
 package edu.cnm.deepdive.animals.controller;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -12,7 +13,13 @@ import android.view.ViewGroup;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import edu.cnm.deepdive.animals.BuildConfig;
 import edu.cnm.deepdive.animals.R;
+import edu.cnm.deepdive.animals.model.Animal;
+import edu.cnm.deepdive.animals.service.AnimalService;
+import java.io.IOException;
+import java.util.List;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -25,7 +32,8 @@ public class ImageFragment extends Fragment {
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
 
-    View root = inflater.inflate(R.layout.fragment_image, container, false);
+    View root = inflater.inflate(R.layout.fragment_image, container,
+        false);
     setupWebView(root);
     return root;
   }
@@ -45,7 +53,7 @@ public class ImageFragment extends Fragment {
     settings.setDisplayZoomControls(false);
     settings.setUseWideViewPort(true);
     settings.setLoadWithOverviewMode(true);
-
+    new Retriever().start();
   }
 
   private class Retriever extends Thread {
@@ -59,6 +67,36 @@ public class ImageFragment extends Fragment {
           .baseUrl("https://us-central1-apis-4674e.cloudfunctions.net/")
           .addConverterFactory(GsonConverterFactory.create(gson))
           .build();
+
+      //this is how to hide the key and do not show in GitHUb the key.
+
+      AnimalService animalService = retrofit.create(AnimalService.class);
+      try {
+        Response<List<Animal>> response = animalService.getAnimals(BuildConfig.CLIENT_KEY)
+            .execute();
+        //when we create this need to check if the response is successful.
+        if (response.isSuccessful()) {
+          List<Animal> animals = response.body();
+          assert animals != null;
+          //get one specific url/image using specific index starting with 0.
+          final String url = animals.get(0).getUrl();
+          //this line allow us to place the url in the main tread. Pass an object to the UI thread.
+          //insert an class as anonymous.
+          getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              //clicked on the red line under url and made it final
+              contentView.loadUrl(url);
+            }
+          });
+        } else {
+          Log.e("AnimalService", response.message());
+        }
+
+
+      } catch (IOException e) {
+        Log.e("AnimalService", e.getMessage(), e);
+      }
     }
   }
 
